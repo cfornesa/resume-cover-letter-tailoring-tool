@@ -1,0 +1,75 @@
+name: GitHub parity
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    name: GitHub parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the revision being validated
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify workspace parity
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test -n "$GITHUB_STEP_SUMMARY"
+          test -n "$GITHUB_REPOSITORY"
+          test -n "$GITHUB_SHA"
+          pnpm run github:parity:ci -- \
+            --repo "$GITHUB_REPOSITORY" \
+            --summary "$GITHUB_STEP_SUMMARY"
+          node - "$GITHUB_STEP_SUMMARY" <<'NODE'
+          const { readFileSync } = require("node:fs");
+
+          const summary = readFileSync(process.argv[2], "utf8")
+            .replace(/\s+/g, " ")
+            .trim();
+          const categories = [
+            "Missing on GitHub",
+            "Extra in GitHub",
+            "Mismatched Git blob SHAs",
+            "Unreadable workspace paths",
+            "Unsupported GitHub tree entries",
+            "Byte-check failures",
+          ];
+          const expected = [
+            "## GitHub parity",
+            "**Result: passed**",
+            ...categories.flatMap((title) => [`### ${title}`, "_None._"]),
+          ].join(" ");
+
+          if (summary !== expected) {
+            console.error("GitHub parity did not publish the expected clean summary.");
+            console.error(readFileSync(process.argv[2], "utf8"));
+            process.exit(1);
+          }
+          NODE
