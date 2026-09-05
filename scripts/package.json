@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "github:parity": "tsx ./src/check-github-parity.ts",
+    "test": "tsx --test ./src/check-github-parity.test.ts",
     "hello": "tsx ./src/hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
