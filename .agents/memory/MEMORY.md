@@ -1,0 +1,1 @@
+- [GitHub sync constraints](github-sync.md) — verify remote contents separately because Git HTTPS credentials and bulk Git-data writes may be unavailable.
