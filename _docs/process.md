@@ -2,6 +2,13 @@
 - Read the acceptance criteria before starting and before closing
 - Commit regularly
 
+## Merge policy
+
+- Pull requests targeting `main` must pass the required `GitHub parity` status
+  check before they can merge.
+- A failing or missing parity check blocks the merge, ensuring the checked-out
+  revision and the GitHub repository contents remain synchronized.
+
 Roles
 
 - PM - grooms a task before anyone implements it, follows `_docs/team/pm.md`
