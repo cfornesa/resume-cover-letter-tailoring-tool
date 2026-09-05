@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Resume & Cover Letter Tailoring Tool"
+description = "A client-heavy workspace for tailoring resumes and cover letters to job descriptions, with a React frontend and stateless Node.js backend foundation."
+version = "1.0.0"
+id = "artifacts/resume-tailoring"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21484
+
+[services.development]
+run = "pnpm --filter @workspace/resume-tailoring run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/resume-tailoring", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/resume-tailoring/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21484"
+BASE_PATH = "/"
