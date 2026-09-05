@@ -6,6 +6,8 @@ An application skeleton for tailoring resumes and cover letters to job descripti
 
 - Canonical GitHub repository: https://github.com/cfornesa/resume-cover-letter-tailoring-tool
 - `pnpm test` — run the Node.js smoke-test suite
+- `pnpm run github:parity` — compare unignored workspace files with the canonical GitHub branch
+- `pnpm run github:parity:ci` — run the same check against the GitHub Actions revision
 - `pnpm --filter @workspace/api-server run dev` — run the API server
 - `pnpm --filter @workspace/resume-tailoring run dev` — run the React frontend
 - `pnpm run typecheck` — full typecheck across all packages
@@ -54,3 +56,41 @@ The planned product helps users tailor resumes and cover letters to a job descri
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+
+## GitHub parity enforcement
+
+The `GitHub parity` Actions workflow runs `pnpm run github:parity:ci` on every
+push and pull request targeting `main`. It compares the checked-out revision
+with that exact GitHub revision, including the recursive tree and the static
+HTML entrypoints. Its `GitHub parity` job is a required status check for
+`main`, so a pull request cannot merge while parity is failing or absent.
+
+When working in Replit or completing a supported repository sync, run the local
+check before declaring the sync complete:
+
+```sh
+pnpm run github:parity
+```
+
+Local runs use the installed GitHub integration, while CI uses GitHub's
+short-lived Actions token. Neither mode requires a token argument or prints
+credentials. The check compares every tracked or unignored workspace file
+with the recursive GitHub tree, calculates Git blob SHAs from the current file
+bytes, and reports missing, extra, unreadable, and stale paths. It also fetches
+the two static HTML entrypoints through the Contents API and performs an exact
+byte comparison after safely removing base64 whitespace.
+
+Useful overrides:
+
+```sh
+pnpm run github:parity -- --ref feature/my-branch
+pnpm run github:parity -- --repo owner/repository --entrypoint path/to/index.html
+```
+
+The command exits nonzero whenever parity cannot be established or any
+reported path/entrypoint differs. A failed local check or Actions job means
+the sync is incomplete: use each reported path to identify the missing or
+stale file, finish or retry the supported sync, and rerun
+`pnpm run github:parity` locally. For a failed pull request gate, push the
+correction and the workflow will rerun automatically. A successful branch push
+alone is not proof of parity.
