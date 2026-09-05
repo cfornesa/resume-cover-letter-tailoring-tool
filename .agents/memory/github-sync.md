@@ -14,3 +14,14 @@ For large scaffolds, the GitHub Contents API can sync files one at a time when G
 **Why:** The connector accepted ordinary source/document updates through Contents API but repeatedly blocked the two static `index.html` writes after bulk Git-data attempts.
 
 **How to apply:** Use Contents API commits as a fallback, then retry any Cloudflare-blocked paths after the connector clears; never claim exact parity from branch metadata alone.
+
+The repeatable workspace check is `pnpm run github:parity`. It compares tracked
+and unignored workspace files to the recursive GitHub tree by Git blob SHA and
+does exact byte checks for the static HTML entrypoints.
+
+**Why:** Branch or commit metadata can look correct while a file is missing,
+stale, or altered by transport encoding.
+
+**How to apply:** Run the parity command after every sync and treat any
+missing, extra, mismatched, unreadable, unsupported, or failed entrypoint
+report as an incomplete sync.
